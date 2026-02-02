@@ -6,11 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 
 interface NoteDetailProps {
@@ -25,9 +25,9 @@ export function NoteDetail({ note, open, onClose, onMove, onToggleAction }: Note
   if (!note) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[85vh] overflow-hidden flex flex-col p-0">
-        <DialogHeader className="p-6 pb-0">
+    <Sheet open={open} onOpenChange={onClose}>
+      <SheetContent side="bottom" className="h-[85vh] md:h-[80vh] p-0 flex flex-col">
+        <SheetHeader className="p-4 md:p-6 pb-0 flex-shrink-0">
           <div className="space-y-2">
             <Badge
               className={cn(
@@ -39,23 +39,23 @@ export function NoteDetail({ note, open, onClose, onMove, onToggleAction }: Note
             >
               {note.type}
             </Badge>
-            <DialogTitle className="text-xl font-semibold leading-tight">
+            <SheetTitle className="text-lg md:text-xl font-semibold leading-tight text-left">
               {note.title}
-            </DialogTitle>
+            </SheetTitle>
             <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">
               {note.date}
             </p>
           </div>
-        </DialogHeader>
+        </SheetHeader>
 
-        <ScrollArea className="flex-1 px-6">
+        <ScrollArea className="flex-1 px-4 md:px-6">
           <div className="space-y-6 pb-6">
             {/* Synopsis */}
             <section>
               <h4 className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground mb-2 font-bold">
                 Synopsis
               </h4>
-              <p className="text-[15px] leading-relaxed">{note.synopsis}</p>
+              <p className="text-sm md:text-[15px] leading-relaxed">{note.synopsis}</p>
             </section>
 
             {/* Takeaways */}
@@ -66,7 +66,7 @@ export function NoteDetail({ note, open, onClose, onMove, onToggleAction }: Note
                 </h4>
                 <ul className="space-y-0">
                   {note.takeaways.map((t, i) => (
-                    <li key={i} className="py-2.5 border-b border-border text-[14px] leading-snug">
+                    <li key={i} className="py-3 border-b border-border text-sm leading-snug">
                       <span className="text-muted-foreground mr-2">—</span>
                       {t}
                     </li>
@@ -83,19 +83,22 @@ export function NoteDetail({ note, open, onClose, onMove, onToggleAction }: Note
                 </h4>
                 <ul className="space-y-0">
                   {note.actions.map((action, i) => (
-                    <li key={i} className="py-3 border-b border-border flex items-start gap-3">
+                    <label 
+                      key={i} 
+                      className="py-3 border-b border-border flex items-start gap-3 cursor-pointer hover:bg-accent/50 transition-colors"
+                    >
                       <Checkbox
                         checked={action.done}
                         onCheckedChange={() => onToggleAction(note.id, i)}
-                        className="mt-0.5"
+                        className="mt-0.5 h-5 w-5"
                       />
                       <span className={cn(
-                        'text-[14px] leading-snug',
+                        'text-sm leading-snug flex-1',
                         action.done && 'line-through text-muted-foreground'
                       )}>
                         {action.text}
                       </span>
-                    </li>
+                    </label>
                   ))}
                 </ul>
               </section>
@@ -106,7 +109,7 @@ export function NoteDetail({ note, open, onClose, onMove, onToggleAction }: Note
               <h4 className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground mb-2 font-bold">
                 Transcript
               </h4>
-              <div className="bg-background border border-border p-4 text-[14px] leading-relaxed max-h-40 overflow-y-auto whitespace-pre-wrap">
+              <div className="bg-background border border-border p-4 text-sm leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap">
                 {note.transcript.split(/(\d{2}:\d{2}:\d{2})/g).map((part, i) => (
                   part.match(/^\d{2}:\d{2}:\d{2}$/) ? (
                     <span key={i} className="block mt-3 first:mt-0 mb-1 font-mono text-[10px] text-leo tracking-wider">
@@ -122,13 +125,13 @@ export function NoteDetail({ note, open, onClose, onMove, onToggleAction }: Note
         </ScrollArea>
 
         {/* Move buttons */}
-        <div className="p-4 border-t border-border flex gap-2">
+        <div className="p-4 border-t border-border flex gap-2 flex-shrink-0 bg-card">
           {COLUMNS.filter(c => c.id !== note.column).map(col => (
             <Button
               key={col.id}
               variant={col.id === 'done' ? 'default' : 'outline'}
-              size="sm"
-              className="flex-1 font-mono text-[10px] uppercase tracking-wider rounded-none"
+              size="lg"
+              className="flex-1 font-mono text-[10px] uppercase tracking-wider rounded-none h-12"
               onClick={() => {
                 onMove(note.id, col.id);
                 onClose();
@@ -138,7 +141,7 @@ export function NoteDetail({ note, open, onClose, onMove, onToggleAction }: Note
             </Button>
           ))}
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

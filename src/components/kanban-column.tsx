@@ -26,14 +26,13 @@ export function KanbanColumn({ id, label, notes, onNoteClick }: KanbanColumnProp
   return (
     <div
       className={cn(
-        'flex-shrink-0 w-60 bg-card flex flex-col max-h-[280px]',
-        'snap-start',
-        'md:w-60'
+        'flex-shrink-0 w-[280px] md:w-60 bg-card flex flex-col min-h-[200px] max-h-[400px] md:max-h-[280px]',
+        'snap-start'
       )}
     >
       <div className="p-3 border-b border-border flex justify-between items-center">
         <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-          <span className={cn('w-1.5 h-1.5', columnColors[id])} />
+          <span className={cn('w-2 h-2 md:w-1.5 md:h-1.5', columnColors[id])} />
           {label}
         </span>
         <span className="font-mono text-[10px] text-muted-foreground">
@@ -50,7 +49,7 @@ export function KanbanColumn({ id, label, notes, onNoteClick }: KanbanColumnProp
       >
         <SortableContext items={notes.map(n => n.id)} strategy={verticalListSortingStrategy}>
           {notes.length === 0 ? (
-            <p className="text-center py-4 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            <p className="text-center py-6 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
               Empty
             </p>
           ) : (
