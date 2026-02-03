@@ -7,9 +7,12 @@ import { AgentCard } from './agent-card';
 import { AgentDetailView } from './agent-detail-view';
 import { ActivityFeed } from './activity-feed';
 import { TaskList } from './task-list';
+import { SquadOverview } from './squad-overview';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+
+type SquadViewMode = 'overview' | 'cards';
 
 // Initialize data source based on environment
 function getDataSource(): DataSource {
@@ -28,32 +31,7 @@ export function SquadDashboard() {
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [agentDetail, setAgentDetail] = useState<AgentDetail | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
-  
-  // Activity feed state
-  const [activities, setActivities] = useState<Activity[]>(mockActivity);
-  const [isLoadingActivities, setIsLoadingActivities] = useState(false);
-  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
-
-  // Fetch activities on mount and when refreshed
-  const fetchActivities = useCallback(async () => {
-    setIsLoadingActivities(true);
-    try {
-      const fetchedActivities = await dataSource.getActivity();
-      // If we got activities from the data source, use them; otherwise fall back to mock
-      setActivities(fetchedActivities.length > 0 ? fetchedActivities : mockActivity);
-      setLastRefresh(new Date());
-    } catch (error) {
-      console.error('Failed to fetch activities:', error);
-      // Keep existing activities on error
-    } finally {
-      setIsLoadingActivities(false);
-    }
-  }, []);
-
-  // Fetch activities on mount
-  useEffect(() => {
-    fetchActivities();
-  }, [fetchActivities]);
+  const [squadViewMode, setSquadViewMode] = useState<SquadViewMode>('overview');
 
   // Fetch agent detail when an agent is selected
   const fetchAgentDetail = useCallback(async (agent: Agent) => {
@@ -153,16 +131,51 @@ export function SquadDashboard() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="squad" className="mt-0 p-4">
-            <div className="grid grid-cols-1 gap-3">
-              {mockAgents.map(agent => (
-                <AgentCard
-                  key={agent.id}
-                  agent={agent}
-                  onClick={() => handleAgentClick(agent)}
-                />
-              ))}
+          <TabsContent value="squad" className="mt-0">
+            {/* Mobile view toggle */}
+            <div className="px-4 py-2 border-b border-border flex items-center justify-end">
+              <div className="flex items-center gap-1 bg-muted/50 p-0.5">
+                <button
+                  onClick={() => setSquadViewMode('overview')}
+                  className={cn(
+                    'px-2 py-1 font-mono text-[9px] uppercase tracking-wider transition-colors',
+                    squadViewMode === 'overview'
+                      ? 'bg-background text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  ☰ Overview
+                </button>
+                <button
+                  onClick={() => setSquadViewMode('cards')}
+                  className={cn(
+                    'px-2 py-1 font-mono text-[9px] uppercase tracking-wider transition-colors',
+                    squadViewMode === 'cards'
+                      ? 'bg-background text-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  ▦ Cards
+                </button>
+              </div>
             </div>
+            
+            {squadViewMode === 'overview' ? (
+              <SquadOverview
+                agents={mockAgents}
+                onAgentClick={handleAgentClick}
+              />
+            ) : (
+              <div className="p-4 grid grid-cols-1 gap-3">
+                {mockAgents.map(agent => (
+                  <AgentCard
+                    key={agent.id}
+                    agent={agent}
+                    onClick={() => handleAgentClick(agent)}
+                  />
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="tasks" className="mt-0">
@@ -182,25 +195,62 @@ export function SquadDashboard() {
 
       {/* Desktop Layout: Three columns */}
       <div className="hidden lg:flex h-[calc(100vh-120px)]">
-        {/* Left: Agent Cards */}
+        {/* Left: Agent Cards/Overview */}
         <div className="w-80 flex-shrink-0 border-r border-border overflow-y-auto">
-          <div className="sticky top-0 bg-background z-10 px-4 py-3 border-b border-border">
-            <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Squad
-            </span>
-            <span className="font-mono text-[10px] text-muted-foreground ml-2">
-              {mockAgents.length}
-            </span>
+          <div className="sticky top-0 bg-background z-10 px-4 py-3 border-b border-border flex items-center justify-between">
+            <div>
+              <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Squad
+              </span>
+              <span className="font-mono text-[10px] text-muted-foreground ml-2">
+                {mockAgents.length}
+              </span>
+            </div>
+            {/* View toggle */}
+            <div className="flex items-center gap-1 bg-muted/50 p-0.5">
+              <button
+                onClick={() => setSquadViewMode('overview')}
+                className={cn(
+                  'px-2 py-1 font-mono text-[9px] uppercase tracking-wider transition-colors',
+                  squadViewMode === 'overview'
+                    ? 'bg-background text-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+                title="Overview - see all at a glance"
+              >
+                ☰
+              </button>
+              <button
+                onClick={() => setSquadViewMode('cards')}
+                className={cn(
+                  'px-2 py-1 font-mono text-[9px] uppercase tracking-wider transition-colors',
+                  squadViewMode === 'cards'
+                    ? 'bg-background text-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+                title="Cards - detailed view"
+              >
+                ▦
+              </button>
+            </div>
           </div>
-          <div className="p-3 space-y-3">
-            {mockAgents.map(agent => (
-              <AgentCard
-                key={agent.id}
-                agent={agent}
-                onClick={() => handleAgentClick(agent)}
-              />
-            ))}
-          </div>
+          
+          {squadViewMode === 'overview' ? (
+            <SquadOverview
+              agents={mockAgents}
+              onAgentClick={handleAgentClick}
+            />
+          ) : (
+            <div className="p-3 space-y-3">
+              {mockAgents.map(agent => (
+                <AgentCard
+                  key={agent.id}
+                  agent={agent}
+                  onClick={() => handleAgentClick(agent)}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Center: Tasks */}

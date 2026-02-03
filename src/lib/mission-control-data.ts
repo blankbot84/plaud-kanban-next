@@ -10,6 +10,7 @@ export interface Agent {
   role: string;
   status: AgentStatus;
   focus: string | null;
+  blockers: string[] | null; // Parsed from WORKING.md
   lastActive: Date;
   color: string; // TMNT-inspired
 }
@@ -55,6 +56,7 @@ export const mockAgents: Agent[] = [
     role: 'AI Architect',
     status: 'idle',
     focus: null,
+    blockers: null,
     lastActive: new Date(Date.now() - 5 * 60 * 1000), // 5 min ago
     color: 'leo', // blue
   },
@@ -65,6 +67,7 @@ export const mockAgents: Agent[] = [
     role: 'Dealership Dev',
     status: 'working',
     focus: 'GA4 integration for Sam Boswell',
+    blockers: null,
     lastActive: new Date(Date.now() - 30 * 1000), // 30 sec ago
     color: 'raph', // red
   },
@@ -75,6 +78,7 @@ export const mockAgents: Agent[] = [
     role: 'QA Specialist',
     status: 'working',
     focus: 'Visual regression test suite',
+    blockers: null,
     lastActive: new Date(Date.now() - 2 * 60 * 1000), // 2 min ago
     color: 'donnie', // purple
   },
@@ -85,6 +89,7 @@ export const mockAgents: Agent[] = [
     role: 'Strategic Synthesis',
     status: 'idle',
     focus: null,
+    blockers: null,
     lastActive: new Date(Date.now() - 8 * 60 * 60 * 1000), // 8 hours ago
     color: 'mikey', // orange
   },
@@ -95,6 +100,7 @@ export const mockAgents: Agent[] = [
     role: 'Research & Analysis',
     status: 'blocked',
     focus: 'Competitor pricing analysis',
+    blockers: ['Waiting on API credentials for automotive data provider'],
     lastActive: new Date(Date.now() - 45 * 60 * 1000), // 45 min ago
     color: 'leo',
   },

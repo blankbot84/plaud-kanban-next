@@ -17,6 +17,82 @@ import { sampleNotes } from './data';
 import { type Note } from './types';
 
 // ─────────────────────────────────────────────────────────────
+// WORKING.MD PARSING UTILITIES
+// ─────────────────────────────────────────────────────────────
+
+export interface ParsedWorkingMd {
+  focus: string | null;
+  blockers: string[] | null;
+  activeTasks: string[];
+  status: 'active' | 'idle' | 'blocked' | null;
+}
+
+/**
+ * Parse WORKING.md content to extract focus, blockers, and tasks
+ */
+export function parseWorkingMd(content: string): ParsedWorkingMd {
+  const result: ParsedWorkingMd = {
+    focus: null,
+    blockers: null,
+    activeTasks: [],
+    status: null,
+  };
+
+  if (!content) return result;
+
+  // Extract "## Current Focus" section
+  const focusMatch = content.match(/##\s*Current\s*Focus\s*\n([\s\S]*?)(?=\n##|\n---|\z)/i);
+  if (focusMatch) {
+    const focusContent = focusMatch[1].trim();
+    // Remove bullet points and get clean text
+    const lines = focusContent.split('\n')
+      .map(line => line.replace(/^[-*•]\s*/, '').trim())
+      .filter(line => line && !line.startsWith('_') && line !== 'None' && line !== 'Awaiting assignment');
+    result.focus = lines.length > 0 ? lines[0] : null;
+  }
+
+  // Extract "## Blockers" section
+  const blockersMatch = content.match(/##\s*Blockers?\s*\n([\s\S]*?)(?=\n##|\n---|\z)/i);
+  if (blockersMatch) {
+    const blockersContent = blockersMatch[1].trim();
+    if (!blockersContent.includes('_None') && !blockersContent.includes('No blockers')) {
+      const blockers = blockersContent.split('\n')
+        .map(line => line.replace(/^[-*•]\s*/, '').trim())
+        .filter(line => line && !line.startsWith('_'));
+      if (blockers.length > 0) {
+        result.blockers = blockers;
+      }
+    }
+  }
+
+  // Extract active tasks (unchecked items from "## Active Tasks")
+  const tasksMatch = content.match(/##\s*Active\s*Tasks?\s*\n([\s\S]*?)(?=\n##|\n---|\z)/i);
+  if (tasksMatch) {
+    const tasksContent = tasksMatch[1].trim();
+    const tasks = tasksContent.split('\n')
+      .filter(line => line.match(/^-\s*\[\s*\]/)) // Unchecked items
+      .map(line => line.replace(/^-\s*\[\s*\]\s*/, '').trim())
+      .filter(line => line);
+    result.activeTasks = tasks;
+  }
+
+  // Extract status from frontmatter or content
+  const statusMatch = content.match(/status:\s*(active|idle|blocked|working|busy|offline)/i);
+  if (statusMatch) {
+    const rawStatus = statusMatch[1].toLowerCase();
+    if (rawStatus === 'active' || rawStatus === 'working' || rawStatus === 'busy') {
+      result.status = 'active';
+    } else if (rawStatus === 'blocked' || rawStatus === 'offline') {
+      result.status = 'blocked';
+    } else {
+      result.status = 'idle';
+    }
+  }
+
+  return result;
+}
+
+// ─────────────────────────────────────────────────────────────
 // INTERFACES
 // ─────────────────────────────────────────────────────────────
 
@@ -32,11 +108,17 @@ export interface DailyNote {
   content: string;     // Raw markdown
 }
 
+export interface SquadOverview {
+  agents: Agent[];
+  lastUpdated: Date;
+}
+
 export interface DataSource {
   getAgents(): Promise<Agent[]>;
   getNotes(): Promise<Note[]>;
   getActivity(): Promise<Activity[]>;
   getAgentDetail(agentId: string): Promise<AgentDetail | null>;
+  getSquadOverview(): Promise<SquadOverview>;
 }
 
 // Agent state from WORKING.md frontmatter
@@ -88,6 +170,14 @@ export class MockDataSource implements DataSource {
 
   async getActivity(): Promise<Activity[]> {
     return mockActivity;
+  }
+
+  async getSquadOverview(): Promise<SquadOverview> {
+    // Mock data already has focus and blockers set
+    return {
+      agents: mockAgents,
+      lastUpdated: new Date(),
+    };
   }
 
   async getAgentDetail(agentId: string): Promise<AgentDetail | null> {
@@ -332,13 +422,17 @@ export class GitHubDataSource implements DataSource {
         const state = data as AgentWorkingState;
         const regEntry = registry[folder.name];
 
+        // Parse WORKING.md for focus and blockers
+        const parsed = parseWorkingMd(workingMd);
+
         const agent: Agent = {
           id: folder.name,
           name: regEntry?.name || this.capitalize(folder.name),
           emoji: regEntry?.emoji || '🤖',
           role: regEntry?.role || 'Agent',
           status: this.mapStatus(state.status),
-          focus: state.focus || null,
+          focus: parsed.focus || state.focus || null,
+          blockers: parsed.blockers,
           lastActive: new Date(state.lastActive || Date.now()),
           color: regEntry?.color || 'leo',
         };
@@ -656,6 +750,15 @@ export class GitHubDataSource implements DataSource {
       workingMd,
       soulMd,
       dailyNotes,
+    };
+  }
+
+  async getSquadOverview(): Promise<SquadOverview> {
+    // Fetch all agents with their WORKING.md parsed focus/blockers
+    const agents = await this.getAgents();
+    return {
+      agents,
+      lastUpdated: new Date(),
     };
   }
 
