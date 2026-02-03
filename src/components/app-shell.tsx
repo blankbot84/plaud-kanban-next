@@ -3,13 +3,8 @@
 import { useState } from 'react';
 import { NotesView } from './notes-view';
 import { SquadDashboard } from './mission-control/squad-dashboard';
-import { AppSidebar, NavView } from './app-sidebar';
-import { MobileNav } from './mobile-nav';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+import { TasksKanban } from './tasks';
+import { ThemeToggle } from './theme-toggle';
 import { cn } from '@/lib/utils';
 import { sampleNotes } from '@/lib/data';
 import { mockAgents } from '@/lib/mission-control-data';
@@ -17,7 +12,7 @@ import { MockDataSource } from '@/lib/data-source';
 import type { AgentDetail } from '@/lib/data-source';
 import type { SearchResult } from '@/lib/search';
 
-type View = 'notes' | 'mission-control';
+type View = 'plaud' | 'mission-control' | 'tasks';
 
 export function AppShell() {
   const [view, setView] = useState<View>('notes');
@@ -30,10 +25,10 @@ export function AppShell() {
         <div className="px-4 py-3 flex justify-between items-center">
           <div>
             <h1 className="font-mono text-sm font-bold tracking-[0.25em] uppercase">
-              {view === 'notes' ? 'PLAUD' : 'MISSION'}
+              {view === 'plaud' ? 'PLAUD' : view === 'tasks' ? 'TASK' : 'MISSION'}
             </h1>
             <span className="font-mono text-[10px] text-muted-foreground tracking-widest">
-              {view === 'notes' ? 'NOTES' : 'CONTROL'}
+              {view === 'plaud' ? 'NOTES' : view === 'tasks' ? 'BOARD' : 'CONTROL'}
             </span>
           </div>
           <ThemeToggle />
@@ -51,8 +46,21 @@ export function AppShell() {
                 : 'border-b-transparent text-muted-foreground hover:text-foreground'
             )}
           >
-            <span className={cn('w-2 h-2 inline-block mr-2', view === 'notes' ? 'bg-donnie' : 'bg-muted-foreground')} />
+            <span className={cn('w-2 h-2 inline-block mr-2', view === 'plaud' ? 'bg-donnie' : 'bg-muted-foreground')} />
             Notes
+          </button>
+          <button
+            onClick={() => setView('tasks')}
+            className={cn(
+              'flex-1 py-2.5 font-mono text-[10px] uppercase tracking-widest transition-colors',
+              'border-b-2',
+              view === 'tasks'
+                ? 'border-b-leo text-foreground'
+                : 'border-b-transparent text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <span className={cn('w-2 h-2 inline-block mr-2', view === 'tasks' ? 'bg-leo' : 'bg-muted-foreground')} />
+            Tasks
           </button>
           <button
             onClick={() => setView('mission-control')}
@@ -65,18 +73,16 @@ export function AppShell() {
             )}
           >
             <span className={cn('w-2 h-2 inline-block mr-2', view === 'mission-control' ? 'bg-raph' : 'bg-muted-foreground')} />
-            Mission Control
+            Agents
           </button>
         </div>
       </header>
 
       {/* Main content */}
       <main className="flex-1 overflow-hidden">
-        {view === 'notes' ? (
-          <NotesView embedded />
-        ) : (
-          <SquadDashboard />
-        )}
+        {view === 'plaud' && <KanbanBoard embedded />}
+        {view === 'tasks' && <TasksKanban />}
+        {view === 'mission-control' && <SquadDashboard />}
       </main>
     </div>
   );

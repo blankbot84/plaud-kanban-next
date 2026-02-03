@@ -14,7 +14,7 @@ import {
   type Activity,
 } from './mission-control-data';
 import { sampleNotes } from './data';
-import { type Note } from './types';
+import { type Note, type Task, type TaskStatus, type TaskPriority } from './types';
 
 // ─────────────────────────────────────────────────────────────
 // WORKING.MD PARSING UTILITIES
@@ -118,7 +118,7 @@ export interface DataSource {
   getNotes(): Promise<Note[]>;
   getActivity(): Promise<Activity[]>;
   getAgentDetail(agentId: string): Promise<AgentDetail | null>;
-  getSquadOverview(): Promise<SquadOverview>;
+  getTasks(): Promise<Task[]>;
 }
 
 // Agent state from WORKING.md frontmatter
@@ -155,9 +155,99 @@ interface NoteFrontmatter {
   participants?: string[];
 }
 
+// Task frontmatter from markdown files
+interface TaskFrontmatter {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  assignees?: string[];
+  created?: string;
+  updated?: string;
+  due?: string;
+  tags?: string[];
+}
+
 // ─────────────────────────────────────────────────────────────
 // MOCK DATA SOURCE
 // ─────────────────────────────────────────────────────────────
+
+// Sample mock tasks for development
+const mockTasks: Task[] = [
+  {
+    id: 'task-001',
+    title: 'Build task system for Command Center',
+    status: 'active',
+    priority: 'high',
+    assignees: ['murphie'],
+    description: 'Implement file-based task storage with markdown + frontmatter format. Create Kanban view for task management.',
+    created: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    updated: new Date().toISOString(),
+    tags: ['command-center', 'feature'],
+  },
+  {
+    id: 'task-002',
+    title: 'GA4 integration for Sam Boswell',
+    status: 'active',
+    priority: 'high',
+    assignees: ['eight'],
+    description: 'Implement Google Analytics 4 event tracking for all vehicle detail pages across Sam Boswell rooftops.',
+    created: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    tags: ['dealership', 'analytics'],
+  },
+  {
+    id: 'task-003',
+    title: 'Visual regression test suite',
+    status: 'active',
+    priority: 'medium',
+    assignees: ['murphie'],
+    description: 'Configure Playwright for automated visual regression tests with screenshot comparison.',
+    created: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    tags: ['testing', 'qa'],
+  },
+  {
+    id: 'task-004',
+    title: 'Research competitor pricing tools',
+    status: 'inbox',
+    priority: 'medium',
+    assignees: ['intel'],
+    description: 'Analyze competitor pricing strategies and identify opportunities for differentiation.',
+    created: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    tags: ['research', 'market'],
+  },
+  {
+    id: 'task-005',
+    title: 'Morning briefing automation',
+    status: 'done',
+    priority: 'medium',
+    assignees: ['daily'],
+    description: 'Auto-generate daily briefings from calendar, emails, and project updates.',
+    created: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    updated: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    tags: ['automation', 'daily'],
+  },
+  {
+    id: 'task-006',
+    title: 'Review mobile kanban UX',
+    status: 'inbox',
+    priority: 'low',
+    assignees: [],
+    description: 'Test the mobile kanban experience on various devices and gather feedback.',
+    created: new Date().toISOString(),
+    tags: ['ux', 'mobile'],
+  },
+  {
+    id: 'task-007',
+    title: 'Set up life-data sync script',
+    status: 'done',
+    priority: 'high',
+    assignees: ['murphie', 'bam'],
+    description: 'Create sync-life-data.sh script to push agent state to GitHub repo.',
+    created: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    updated: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    tags: ['infrastructure', 'sync'],
+  },
+];
 
 export class MockDataSource implements DataSource {
   async getAgents(): Promise<Agent[]> {
@@ -172,12 +262,8 @@ export class MockDataSource implements DataSource {
     return mockActivity;
   }
 
-  async getSquadOverview(): Promise<SquadOverview> {
-    // Mock data already has focus and blockers set
-    return {
-      agents: mockAgents,
-      lastUpdated: new Date(),
-    };
+  async getTasks(): Promise<Task[]> {
+    return mockTasks;
   }
 
   async getAgentDetail(agentId: string): Promise<AgentDetail | null> {
@@ -753,13 +839,48 @@ export class GitHubDataSource implements DataSource {
     };
   }
 
-  async getSquadOverview(): Promise<SquadOverview> {
-    // Fetch all agents with their WORKING.md parsed focus/blockers
-    const agents = await this.getAgents();
-    return {
-      agents,
-      lastUpdated: new Date(),
-    };
+  async getTasks(): Promise<Task[]> {
+    const tasks: Task[] = [];
+
+    try {
+      const files = await this.fetchDirectory('tasks');
+      const mdFiles = files.filter((f) => f.name.endsWith('.md'));
+
+      for (const file of mdFiles) {
+        try {
+          const content = await this.fetchRaw(file.path);
+          const { data, content: body } = matter(content);
+          const fm = data as TaskFrontmatter;
+
+          const task: Task = {
+            id: fm.id || file.name.replace('.md', ''),
+            title: fm.title || file.name.replace('.md', ''),
+            status: fm.status || 'inbox',
+            priority: fm.priority || 'medium',
+            assignees: fm.assignees || [],
+            description: body.trim(),
+            created: fm.created || new Date().toISOString(),
+            updated: fm.updated,
+            due: fm.due,
+            tags: fm.tags,
+          };
+
+          tasks.push(task);
+        } catch (err) {
+          console.warn(`Could not load task ${file.name}:`, err);
+        }
+      }
+    } catch (err) {
+      console.warn('Could not load tasks directory:', err);
+    }
+
+    // Sort by priority (high first) then by created date
+    const priorityOrder: Record<TaskPriority, number> = { high: 0, medium: 1, low: 2 };
+    return tasks.sort((a, b) => {
+      const pDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+      if (pDiff !== 0) return pDiff;
+      return new Date(b.created).getTime() - new Date(a.created).getTime();
+    });
   }
 
   // ───────────────────────────────────────────────────────────
