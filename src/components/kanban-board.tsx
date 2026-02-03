@@ -23,7 +23,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
-export function KanbanBoard() {
+interface KanbanBoardProps {
+  embedded?: boolean;
+}
+
+export function KanbanBoard({ embedded }: KanbanBoardProps) {
   const [notes, setNotes] = useState<Note[]>(sampleNotes);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -117,120 +121,101 @@ export function KanbanBoard() {
     );
   };
 
-  return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragOver={handleDragOver}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="min-h-screen flex flex-col bg-background">
-        {/* Header */}
-        <header className="sticky top-0 z-50 bg-background border-b border-border px-4 py-3 flex justify-between items-center">
-          <div>
-            <h1 className="font-mono text-sm font-bold tracking-[0.25em] uppercase">
-              PLAUD
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-          </div>
-        </header>
-
-        {/* Main layout */}
-        <div className="flex flex-1 overflow-hidden">
-          {/* Mobile: Tabs layout */}
-          <main className="flex-1 overflow-hidden lg:hidden">
-            <Tabs defaultValue="voice" className="h-full flex flex-col">
-              <TabsList className="w-full rounded-none border-b border-border bg-transparent h-12 p-0">
-                <TabsTrigger 
-                  value="voice" 
-                  className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-donnie data-[state=active]:bg-transparent font-mono text-xs uppercase tracking-widest h-full"
-                >
-                  <span className="w-2 h-2 bg-donnie mr-2" />
-                  Voice
-                  <span className="ml-2 text-muted-foreground">
-                    {notes.filter(n => n.type === 'voice').length}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="meetings"
-                  className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-mikey data-[state=active]:bg-transparent font-mono text-xs uppercase tracking-widest h-full"
-                >
-                  <span className="w-2 h-2 bg-mikey mr-2" />
-                  Meetings
-                  <span className="ml-2 text-muted-foreground">
-                    {notes.filter(n => n.type === 'meeting').length}
-                  </span>
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="voice" className="flex-1 overflow-auto mt-0">
-                {renderKanbanRow('voice')}
-              </TabsContent>
-              <TabsContent value="meetings" className="flex-1 overflow-auto mt-0">
-                {renderKanbanRow('meeting')}
-              </TabsContent>
-            </Tabs>
-          </main>
-
-          {/* Desktop: Stacked sections */}
-          <main className="hidden lg:flex lg:flex-1 lg:flex-col overflow-y-auto">
-            <section className="py-4">
-              <div className="sticky top-0 bg-background z-40 border-b border-border px-5 py-3 flex items-center gap-3">
-                <div className="w-1 h-6 bg-donnie" />
-                <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                  Voice
-                </span>
-                <span className="font-mono text-[11px] text-muted-foreground ml-auto">
+  const content = (
+    <>
+      {/* Main layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Mobile: Tabs layout */}
+        <main className="flex-1 overflow-hidden lg:hidden">
+          <Tabs defaultValue="voice" className="h-full flex flex-col">
+            <TabsList className="w-full rounded-none border-b border-border bg-transparent h-12 p-0">
+              <TabsTrigger 
+                value="voice" 
+                className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-donnie data-[state=active]:bg-transparent font-mono text-xs uppercase tracking-widest h-full"
+              >
+                <span className="w-2 h-2 bg-donnie mr-2" />
+                Voice
+                <span className="ml-2 text-muted-foreground">
                   {notes.filter(n => n.type === 'voice').length}
                 </span>
-              </div>
-              {renderKanbanRow('voice')}
-            </section>
-            <div className="h-px bg-border mx-5" />
-            <section className="py-4">
-              <div className="sticky top-0 bg-background z-40 border-b border-border px-5 py-3 flex items-center gap-3">
-                <div className="w-1 h-6 bg-mikey" />
-                <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                  Meetings
-                </span>
-                <span className="font-mono text-[11px] text-muted-foreground ml-auto">
+              </TabsTrigger>
+              <TabsTrigger 
+                value="meetings"
+                className="flex-1 rounded-none border-b-2 border-transparent data-[state=active]:border-mikey data-[state=active]:bg-transparent font-mono text-xs uppercase tracking-widest h-full"
+              >
+                <span className="w-2 h-2 bg-mikey mr-2" />
+                Meetings
+                <span className="ml-2 text-muted-foreground">
                   {notes.filter(n => n.type === 'meeting').length}
                 </span>
-              </div>
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="voice" className="flex-1 overflow-auto mt-0">
+              {renderKanbanRow('voice')}
+            </TabsContent>
+            <TabsContent value="meetings" className="flex-1 overflow-auto mt-0">
               {renderKanbanRow('meeting')}
-            </section>
-          </main>
+            </TabsContent>
+          </Tabs>
+        </main>
 
-          {/* Desktop Sidebar */}
-          <div className="hidden lg:block">
-            <TaskSidebar notes={notes} onToggleAction={handleToggleAction} />
-          </div>
-        </div>
+        {/* Desktop: Stacked sections */}
+        <main className="hidden lg:flex lg:flex-1 lg:flex-col overflow-y-auto">
+          <section className="py-4">
+            <div className="sticky top-0 bg-background z-40 border-b border-border px-5 py-3 flex items-center gap-3">
+              <div className="w-1 h-6 bg-donnie" />
+              <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                Voice
+              </span>
+              <span className="font-mono text-[11px] text-muted-foreground ml-auto">
+                {notes.filter(n => n.type === 'voice').length}
+              </span>
+            </div>
+            {renderKanbanRow('voice')}
+          </section>
+          <div className="h-px bg-border mx-5" />
+          <section className="py-4">
+            <div className="sticky top-0 bg-background z-40 border-b border-border px-5 py-3 flex items-center gap-3">
+              <div className="w-1 h-6 bg-mikey" />
+              <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                Meetings
+              </span>
+              <span className="font-mono text-[11px] text-muted-foreground ml-auto">
+                {notes.filter(n => n.type === 'meeting').length}
+              </span>
+            </div>
+            {renderKanbanRow('meeting')}
+          </section>
+        </main>
 
-        {/* Mobile: Floating task button + sheet */}
-        <div className="lg:hidden">
-          <Sheet open={taskSheetOpen} onOpenChange={setTaskSheetOpen}>
-            <SheetTrigger asChild>
-              <Button
-                size="lg"
-                className="fixed bottom-6 right-6 h-14 w-14 rounded-none bg-raph hover:bg-raph/90 text-white font-mono text-sm font-bold shadow-lg z-50"
-              >
-                {pendingTaskCount}
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="h-[70vh] p-0">
-              <SheetHeader className="p-4 border-b border-border">
-                <SheetTitle className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-                  Tasks ({pendingTaskCount})
-                </SheetTitle>
-              </SheetHeader>
-              <div className="overflow-y-auto h-[calc(70vh-60px)]">
-                <TaskSidebar notes={notes} onToggleAction={handleToggleAction} embedded />
-              </div>
-            </SheetContent>
-          </Sheet>
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:block">
+          <TaskSidebar notes={notes} onToggleAction={handleToggleAction} />
         </div>
+      </div>
+
+      {/* Mobile: Floating task button + sheet */}
+      <div className="lg:hidden">
+        <Sheet open={taskSheetOpen} onOpenChange={setTaskSheetOpen}>
+          <SheetTrigger asChild>
+            <Button
+              size="lg"
+              className="fixed bottom-6 right-6 h-14 w-14 rounded-none bg-raph hover:bg-raph/90 text-white font-mono text-sm font-bold shadow-lg z-50"
+            >
+              {pendingTaskCount}
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="bottom" className="h-[70vh] p-0">
+            <SheetHeader className="p-4 border-b border-border">
+              <SheetTitle className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                Tasks ({pendingTaskCount})
+              </SheetTitle>
+            </SheetHeader>
+            <div className="overflow-y-auto h-[calc(70vh-60px)]">
+              <TaskSidebar notes={notes} onToggleAction={handleToggleAction} embedded />
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
 
       {/* Drag overlay */}
@@ -254,6 +239,45 @@ export function KanbanBoard() {
         onMove={handleMove}
         onToggleAction={handleToggleAction}
       />
+    </>
+  );
+
+  if (embedded) {
+    return (
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="h-full flex flex-col bg-background">
+          {content}
+        </div>
+      </DndContext>
+    );
+  }
+
+  return (
+    <DndContext
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="min-h-screen flex flex-col bg-background">
+        {/* Header */}
+        <header className="sticky top-0 z-50 bg-background border-b border-border px-4 py-3 flex justify-between items-center">
+          <div>
+            <h1 className="font-mono text-sm font-bold tracking-[0.25em] uppercase">
+              PLAUD
+            </h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+          </div>
+        </header>
+        {content}
+      </div>
     </DndContext>
   );
 }

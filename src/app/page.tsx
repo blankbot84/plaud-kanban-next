@@ -1,5 +1,5 @@
-import { KanbanBoard } from '@/components/kanban-board';
+import { AppShell } from '@/components/app-shell';
 
 export default function Home() {
-  return <KanbanBoard />;
+  return <AppShell />;
 }
