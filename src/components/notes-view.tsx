@@ -356,7 +356,7 @@ export function NotesView({ embedded }: NotesViewProps) {
           <SheetTrigger asChild>
             <Button
               size="lg"
-              className="fixed bottom-6 right-6 h-14 w-14 rounded-none bg-raph hover:bg-raph/90 text-white font-mono text-sm font-bold shadow-lg z-50"
+              className="fixed bottom-20 right-6 h-14 w-14 rounded-none bg-raph hover:bg-raph/90 text-white font-mono text-sm font-bold shadow-lg z-50"
             >
               {pendingTaskCount}
             </Button>
