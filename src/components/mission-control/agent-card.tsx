@@ -67,6 +67,19 @@ export function AgentCard({ agent, onClick }: AgentCardProps) {
             Awaiting assignment
           </p>
         )}
+        
+        {/* Blocker badge */}
+        {agent.blockers && agent.blockers.length > 0 && (
+          <div className="mt-2 flex items-start gap-1.5">
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-leo/10 text-leo text-[9px] font-mono uppercase tracking-wider shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-leo" />
+              Blocker
+            </span>
+            <span className="text-[11px] text-muted-foreground line-clamp-1">
+              {agent.blockers[0]}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Footer */}
