@@ -307,3 +307,90 @@
     -webkit-touch-callout: none;
   }
 }
+
+/*
+ * ============================================================================
+ * CHAT LAYOUT - Battle-tested mobile chat pattern
+ * ============================================================================
+ * 
+ * This layout guarantees:
+ * - Header stays at top
+ * - Messages scroll in the middle
+ * - Input stays at bottom (above keyboard on mobile)
+ * - No white space, no cut-off, no jank
+ * 
+ * Structure:
+ * ┌─────────────────────────┐ ← viewport top
+ * │ .chat-header (fixed)    │
+ * ├─────────────────────────┤
+ * │                         │
+ * │ .chat-messages          │ ← flex: 1, overflow-y: auto
+ * │ (scrollable)            │
+ * │                         │
+ * ├─────────────────────────┤
+ * │ .chat-input (fixed)     │ ← safe-area-inset-bottom
+ * └─────────────────────────┘ ← viewport bottom
+ */
+
+.chat-layout {
+  /* Take full height of parent - critical! */
+  height: 100%;
+  width: 100%;
+  
+  /* Flex column layout */
+  display: flex;
+  flex-direction: column;
+  
+  /* Prevent any overflow from this container */
+  overflow: hidden;
+  
+  /* Ensure it's a containing block */
+  position: relative;
+}
+
+.chat-header {
+  /* Never shrink, never grow */
+  flex: 0 0 auto;
+  
+  /* Stay at top */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  
+  /* Prevent content bleed-through */
+  background-color: inherit;
+}
+
+.chat-messages {
+  /* Take all available space */
+  flex: 1 1 auto;
+  
+  /* Enable scrolling */
+  overflow-y: auto;
+  overflow-x: hidden;
+  
+  /* Prevent pull-to-refresh and rubber-banding */
+  overscroll-behavior: contain;
+  
+  /* Smooth momentum scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
+  
+  /* Minimum height to prevent collapse */
+  min-height: 0;
+}
+
+.chat-input {
+  /* Never shrink, never grow */
+  flex: 0 0 auto;
+  
+  /* Stay at bottom */
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  
+  /* Safe area for iPhone home indicator */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  
+  /* Prevent content bleed-through */
+  background-color: inherit;
+}

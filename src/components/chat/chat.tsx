@@ -7,7 +7,6 @@ import { ConversationHeader } from './conversation-header';
 import { ConversationList, type ConversationItem } from './conversation-list';
 import { AgentPicker } from './agent-picker';
 import { useConversations, generateMessageId } from './hooks/use-conversations';
-import { useKeyboardHeight } from '@/hooks/use-keyboard-height';
 import { chatAgents, getAgentById } from '@/lib/agents';
 import { ChatTextarea } from './chat-textarea';
 import { Button } from '@/components/ui/button';
@@ -87,7 +86,6 @@ export function Chat() {
   const [showConversationList, setShowConversationList] = useState(false);
   const [showAgentPicker, setShowAgentPicker] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const keyboardHeight = useKeyboardHeight();
 
   // Get messages from active conversation
   const messages = activeConversation?.messages ?? [];
@@ -238,17 +236,20 @@ export function Chat() {
   // Show loading skeleton while loading from localStorage
   if (!isLoaded) {
     return (
-      <div className="flex flex-col h-full">
-        <div className="flex-shrink-0 border-b px-4 py-2">
+      <div className="chat-layout">
+        {/* Header skeleton */}
+        <div className="chat-header border-b px-4 py-2 bg-background">
           <div className="h-12 bg-muted/30 rounded animate-pulse" />
         </div>
-        <div className="flex-1 overflow-y-auto p-4">
+        {/* Messages skeleton */}
+        <div className="chat-messages p-4">
           <div className="space-y-4 max-w-3xl mx-auto">
             <div className="h-20 bg-muted/20 rounded animate-pulse" />
             <div className="h-20 bg-muted/20 rounded animate-pulse ml-auto w-2/3" />
           </div>
         </div>
-        <div className="flex-shrink-0 border-t bg-background p-4">
+        {/* Input skeleton */}
+        <div className="chat-input border-t bg-background p-4">
           <div className="h-10 bg-muted/30 rounded animate-pulse max-w-3xl mx-auto" />
         </div>
       </div>
@@ -256,9 +257,9 @@ export function Chat() {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Header with agent info - fixed at top */}
-      <div className="flex-shrink-0 border-b px-4 py-2">
+    <div className="chat-layout">
+      {/* Header - fixed at top */}
+      <div className="chat-header border-b px-4 py-2 bg-background">
         <ConversationHeader
           agent={activeAgent ? {
             id: activeAgent.id,
@@ -270,10 +271,10 @@ export function Chat() {
         />
       </div>
 
-      {/* Messages area - scrollable, takes remaining space */}
+      {/* Messages area - scrollable middle */}
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-y-auto overscroll-contain p-4"
+        className="chat-messages p-4"
       >
         <div className="space-y-4 max-w-3xl mx-auto">
           {messages.length === 0 && activeAgent && (
@@ -300,11 +301,8 @@ export function Chat() {
         </div>
       </div>
 
-      {/* Input area - fixed at bottom, never scrolls away */}
-      <div 
-        className="flex-shrink-0 border-t bg-background p-4 safe-area-bottom"
-        style={{ paddingBottom: keyboardHeight > 0 ? keyboardHeight + 16 : undefined }}
-      >
+      {/* Input area - fixed at bottom */}
+      <div className="chat-input border-t bg-background p-4">
         <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex gap-2 items-end">
           <ChatTextarea
             value={input}
