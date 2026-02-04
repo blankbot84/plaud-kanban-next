@@ -1,6 +1,15 @@
 'use client';
 
 import {
+  MessageSquare,
+  Brain,
+  Activity,
+  Search,
+  FileText,
+  Users,
+  Settings,
+} from 'lucide-react';
+import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -15,17 +24,18 @@ import {
 } from '@/components/ui/sidebar';
 import { ThemeToggle } from './theme-toggle';
 import { cn } from '@/lib/utils';
+import type { LucideIcon } from 'lucide-react';
 
 export type NavView = 'notes' | 'squad' | 'activity' | 'memory' | 'chat' | 'search' | 'settings';
 
-const navItems: { id: NavView; label: string; icon: string; color: string }[] = [
-  { id: 'chat', label: 'Chat', icon: '💬', color: 'bg-emerald-500' },
-  { id: 'memory', label: 'Memory', icon: '🧠', color: 'bg-purple-500' },
-  { id: 'activity', label: 'Activity', icon: '📊', color: 'bg-leo' },
-  { id: 'search', label: 'Search', icon: '🔍', color: 'bg-mikey' },
-  { id: 'notes', label: 'Notes', icon: '📝', color: 'bg-donnie' },
-  { id: 'squad', label: 'Squad', icon: '🤖', color: 'bg-raph' },
-  { id: 'settings', label: 'Settings', icon: '⚙️', color: 'bg-muted-foreground' },
+const navItems: { id: NavView; label: string; icon: LucideIcon; color: string }[] = [
+  { id: 'chat', label: 'Chat', icon: MessageSquare, color: 'bg-emerald-500' },
+  { id: 'memory', label: 'Memory', icon: Brain, color: 'bg-purple-500' },
+  { id: 'activity', label: 'Activity', icon: Activity, color: 'bg-leo' },
+  { id: 'search', label: 'Search', icon: Search, color: 'bg-mikey' },
+  { id: 'notes', label: 'Notes', icon: FileText, color: 'bg-donnie' },
+  { id: 'squad', label: 'Squad', icon: Users, color: 'bg-raph' },
+  { id: 'settings', label: 'Settings', icon: Settings, color: 'bg-muted-foreground' },
 ];
 
 interface AppSidebarProps {
@@ -74,7 +84,7 @@ export function AppSidebar({ currentView, onViewChange }: AppSidebarProps) {
                       currentView === item.id && 'bg-sidebar-accent'
                     )}
                   >
-                    <span className="text-base">{item.icon}</span>
+                    <item.icon className="h-5 w-5" />
                     <span>{item.label}</span>
                     {currentView === item.id && (
                       <span

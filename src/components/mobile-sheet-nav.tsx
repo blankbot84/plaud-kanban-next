@@ -1,7 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { Menu } from 'lucide-react';
+import {
+  Menu,
+  MessageSquare,
+  Brain,
+  Activity,
+  Search,
+  FileText,
+  Users,
+  Settings,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { NavView } from './app-sidebar';
 import {
@@ -12,14 +22,14 @@ import {
   SheetClose,
 } from '@/components/ui/sheet';
 
-const navItems: { id: NavView; label: string; icon: string; color: string }[] = [
-  { id: 'chat', label: 'Chat', icon: '💬', color: 'text-emerald-400' },
-  { id: 'memory', label: 'Memory', icon: '🧠', color: 'text-purple-400' },
-  { id: 'activity', label: 'Activity', icon: '📊', color: 'text-leo' },
-  { id: 'search', label: 'Search', icon: '🔍', color: 'text-mikey' },
-  { id: 'notes', label: 'Notes', icon: '📝', color: 'text-donnie' },
-  { id: 'squad', label: 'Squad', icon: '🤖', color: 'text-raph' },
-  { id: 'settings', label: 'Settings', icon: '⚙️', color: 'text-muted-foreground' },
+const navItems: { id: NavView; label: string; icon: LucideIcon; color: string }[] = [
+  { id: 'chat', label: 'Chat', icon: MessageSquare, color: 'text-emerald-400' },
+  { id: 'memory', label: 'Memory', icon: Brain, color: 'text-purple-400' },
+  { id: 'activity', label: 'Activity', icon: Activity, color: 'text-leo' },
+  { id: 'search', label: 'Search', icon: Search, color: 'text-mikey' },
+  { id: 'notes', label: 'Notes', icon: FileText, color: 'text-donnie' },
+  { id: 'squad', label: 'Squad', icon: Users, color: 'text-raph' },
+  { id: 'settings', label: 'Settings', icon: Settings, color: 'text-muted-foreground' },
 ];
 
 interface MobileSheetNavProps {
@@ -64,7 +74,7 @@ export function MobileSheetNav({ currentView, onViewChange }: MobileSheetNavProp
                   currentView === item.id && 'bg-accent'
                 )}
               >
-                <span className="text-2xl">{item.icon}</span>
+                <item.icon className="h-5 w-5" />
                 <div className="flex-1">
                   <span className={cn(
                     'font-mono text-sm font-medium uppercase tracking-wider',
