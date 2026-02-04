@@ -56,7 +56,7 @@ export interface ConversationsState {
 export interface ChatAgent {
   id: string;
   name: string;
-  emoji: string;
+  icon: string; // Lucide icon name (e.g., 'flask-conical', 'terminal')
   role: string;
   description?: string;
   gatewayEndpoint?: string;

@@ -2,9 +2,11 @@
 
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getIcon, getAgentColors } from '@/lib/icons';
 
 export interface ConversationHeaderAgent {
-  emoji: string;
+  id: string;
+  icon: string;
   name: string;
   role: string;
 }
@@ -33,6 +35,9 @@ export function ConversationHeader({ agent, onTap, className }: ConversationHead
     );
   }
 
+  const Icon = getIcon(agent.icon);
+  const colors = getAgentColors(agent.id);
+
   return (
     <button
       onClick={onTap}
@@ -43,9 +48,12 @@ export function ConversationHeader({ agent, onTap, className }: ConversationHead
         className
       )}
     >
-      <span className="text-2xl" role="img" aria-label={agent.name}>
-        {agent.emoji}
-      </span>
+      <div className={cn(
+        'flex h-8 w-8 items-center justify-center rounded-full',
+        colors.bg
+      )}>
+        <Icon className={cn('h-5 w-5', colors.text)} aria-label={agent.name} />
+      </div>
       <div className="flex flex-col items-start">
         <span className="font-semibold text-foreground leading-tight">
           {agent.name}

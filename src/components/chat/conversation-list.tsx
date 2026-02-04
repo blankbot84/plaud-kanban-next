@@ -10,10 +10,12 @@ import {
 } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { getIcon, getAgentColors } from '@/lib/icons';
 
 export interface ConversationItem {
   id: string;
-  agentEmoji: string;
+  agentId: string;
+  agentIcon: string;
   agentName: string;
   lastMessage: string;
   timestamp: string; // Formatted timestamp like "2m", "1h", "3d"
@@ -74,43 +76,51 @@ export function ConversationList({
             </div>
           ) : (
             <div className="space-y-1 pb-4">
-              {conversations.map((conversation) => (
-                <button
-                  key={conversation.id}
-                  onClick={() => {
-                    onSelect(conversation.id);
-                    onOpenChange(false);
-                  }}
-                  className={cn(
-                    'w-full flex items-start gap-3 p-3 rounded-lg',
-                    'hover:bg-muted/50 transition-colors',
-                    'min-h-[56px] touch-manipulation text-left',
-                    activeId === conversation.id && 'bg-muted'
-                  )}
-                >
-                  <span className="text-2xl shrink-0" role="img" aria-label={conversation.agentName}>
-                    {conversation.agentEmoji}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-medium text-foreground truncate">
-                        {conversation.agentName}
-                      </span>
-                      <span className="text-xs text-muted-foreground shrink-0">
-                        {conversation.timestamp}
-                      </span>
+              {conversations.map((conversation) => {
+                const Icon = getIcon(conversation.agentIcon);
+                const colors = getAgentColors(conversation.agentId);
+                
+                return (
+                  <button
+                    key={conversation.id}
+                    onClick={() => {
+                      onSelect(conversation.id);
+                      onOpenChange(false);
+                    }}
+                    className={cn(
+                      'w-full flex items-start gap-3 p-3 rounded-lg',
+                      'hover:bg-muted/50 transition-colors',
+                      'min-h-[56px] touch-manipulation text-left',
+                      activeId === conversation.id && 'bg-muted'
+                    )}
+                  >
+                    <div className={cn(
+                      'flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
+                      colors.bg
+                    )}>
+                      <Icon className={cn('h-5 w-5', colors.text)} aria-label={conversation.agentName} />
                     </div>
-                    <p className="text-sm text-muted-foreground truncate mt-0.5">
-                      {conversation.lastMessage}
-                    </p>
-                  </div>
-                  {conversation.unreadCount && conversation.unreadCount > 0 && (
-                    <span className="shrink-0 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium">
-                      {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
-                    </span>
-                  )}
-                </button>
-              ))}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium text-foreground truncate">
+                          {conversation.agentName}
+                        </span>
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          {conversation.timestamp}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground truncate mt-0.5">
+                        {conversation.lastMessage}
+                      </p>
+                    </div>
+                    {conversation.unreadCount && conversation.unreadCount > 0 && (
+                      <span className="shrink-0 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium">
+                        {conversation.unreadCount > 99 ? '99+' : conversation.unreadCount}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
         </ScrollArea>

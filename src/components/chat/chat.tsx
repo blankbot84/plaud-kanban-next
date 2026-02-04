@@ -12,7 +12,9 @@ import { chatAgents, getAgentById } from '@/lib/agents';
 import { ChatTextarea } from './chat-textarea';
 import { Button } from '@/components/ui/button';
 import { Send } from 'lucide-react';
-import type { ChatMessage as ChatMessageType } from '@/types/chat';
+import type { ChatMessage as ChatMessageType, ChatAgent } from '@/types/chat';
+import { getIcon, getAgentColors } from '@/lib/icons';
+import { cn } from '@/lib/utils';
 
 /**
  * Format a timestamp for display in conversation list
@@ -43,6 +45,27 @@ function parseStreamChunk(chunk: string): string {
     return match[1].replace(/\\"/g, '"').replace(/\\n/g, '\n');
   }
   return '';
+}
+
+/**
+ * Empty state hero with agent icon
+ */
+function EmptyConversationHero({ agent }: { agent: ChatAgent }) {
+  const Icon = getIcon(agent.icon);
+  const colors = getAgentColors(agent.id);
+  
+  return (
+    <div className="text-center text-muted-foreground py-12">
+      <div className={cn(
+        'inline-flex h-16 w-16 items-center justify-center rounded-full mb-4',
+        colors.bg
+      )}>
+        <Icon className={cn('h-8 w-8', colors.text)} />
+      </div>
+      <p className="text-lg font-medium">Chat with {agent.name}</p>
+      <p className="text-sm">{agent.role}</p>
+    </div>
+  );
 }
 
 export function Chat() {
@@ -203,7 +226,8 @@ export function Chat() {
     const lastMessage = conv.messages[conv.messages.length - 1];
     return {
       id: conv.id,
-      agentEmoji: agent?.emoji ?? '🤖',
+      agentId: conv.agentId,
+      agentIcon: agent?.icon ?? 'bot',
       agentName: agent?.name ?? 'Unknown Agent',
       lastMessage: lastMessage?.content?.slice(0, 50) || 'No messages yet',
       timestamp: formatRelativeTime(conv.updatedAt),
@@ -237,7 +261,8 @@ export function Chat() {
       <div className="flex-shrink-0 border-b px-4 py-2">
         <ConversationHeader
           agent={activeAgent ? {
-            emoji: activeAgent.emoji,
+            id: activeAgent.id,
+            icon: activeAgent.icon,
             name: activeAgent.name,
             role: activeAgent.role,
           } : null}
@@ -252,11 +277,7 @@ export function Chat() {
       >
         <div className="space-y-4 max-w-3xl mx-auto">
           {messages.length === 0 && activeAgent && (
-            <div className="text-center text-muted-foreground py-12">
-              <p className="text-4xl mb-4">{activeAgent.emoji}</p>
-              <p className="text-lg font-medium">Chat with {activeAgent.name}</p>
-              <p className="text-sm">{activeAgent.role}</p>
-            </div>
+            <EmptyConversationHero agent={activeAgent} />
           )}
           {messages.length === 0 && !activeAgent && (
             <div className="text-center text-muted-foreground py-12">
@@ -269,6 +290,8 @@ export function Chat() {
               key={message.id}
               role={message.role}
               content={message.content}
+              agentId={activeAgent?.id}
+              agentIcon={activeAgent?.icon}
             />
           ))}
           {isLoading && messages[messages.length - 1]?.role === 'user' && (
